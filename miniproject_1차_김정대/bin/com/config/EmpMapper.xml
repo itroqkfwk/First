@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.config.EmpMapper">
+ 	
+	<select id="findAll" resultType="StudentDTO">
+		select student_no as stuNo,
+			department_no as departNo,
+			student_name as stuName,
+			student_ssn as stussn,
+			student_address as stuAddress,
+			entrance_date as entDate,
+			absence_yn as absyn,
+			coach_professor_no as coachProfessorNo
+		from tb_student	
+	</select>
+	
+	<select id="findName" resultType="StudentDTO" parameterType="string">
+		select student_no as stuNo,
+			department_no as departNo,
+			student_name as stuName,
+			student_ssn as stussn,
+			student_address as stuAddress,
+			entrance_date as entDate,
+			absence_yn as absyn,
+			coach_professor_no as coachProfessorNo
+		from tb_student	
+		where student_name LIKE concat('%', #{student_name} , '%')
+	</select>
+	
+	<select id="findYear" resultType="StudentDTO">
+		select student_no as stuNo,
+			department_no as departNo,
+			student_name as stuName,
+			student_ssn as stussn,
+			student_address as stuAddress,
+			entrance_date as entDate,
+			absence_yn as absyn,
+			coach_professor_no as coachProfessorNo
+		from tb_student	
+		where YEAR(entrance_date) BETWEEN #{startYear} AND #{endYear}
+	</select>
+	
+	<select id="findNo" resultType="StudentDTO" parameterType="java.util.List">
+		select student_no as stuNo,
+			department_no as departNo,
+			student_name as stuName,
+			student_ssn as stussn,
+			student_address as stuAddress,
+			entrance_date as entDate,
+			absence_yn as absyn,
+			coach_professor_no as coachProfessorNo
+		from tb_student	
+		where student_no IN 
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+	</select>
+	
+	<update id="update" parameterType="hashmap">
+		update tb_student
+		set absence_yn = 'Y'
+		where student_no in
+		<foreach collection="studentNos" item="studentNo" open="(" separator="," close=")">
+        #{studentNo}
+    	</foreach>	
+	</update>
+	
+	<update id="updateCapacity" parameterType="hashmap">
+	    update tb_department
+	    set capacity = 
+	        case
+	            WHEN capacity BETWEEN 0 AND 20 THEN capacity + 5
+	            WHEN capacity BETWEEN 21 AND 25 THEN capacity + 4
+	            WHEN capacity BETWEEN 26 AND 30 THEN capacity + 3
+	            ELSE capacity
+	        end
+	</update>
+	
+	<select id="getStudentGrades" resultType="StudentGradeDTO">
+		select 
+		    s.student_no,
+		    s.student_name,
+		    c.class_name,
+		    g.point,
+		    case 
+		        when g.point between 0.0 and 1.9 then 'F'
+		        when g.point between 2.0 and 2.9 then 'D'
+		        when g.point between 3.0 and 3.4 then 'C'
+		        when g.point between 3.5 and 3.9 then 'B'
+		        when g.point >= 4.0 then 'A'
+		    end as grade,
+		    g.term_no
+		from tb_grade g
+		join tb_student s on g.student_No = s.student_No
+		join tb_class c on g.class_no = c.class_no
+		where s.student_no = #{studentNo}
+		order by g.term_no;
+    </select>
+	
+	<select id="findPage" resultType="StudentDTO">
+		select student_no as stuNo,
+			department_no as departNo,
+			student_name as stuName,
+			student_ssn as stussn,
+			student_address as stuAddress,
+			entrance_date as entDate,
+			absence_yn as absyn,
+			coach_professor_no as coachProfessorNo
+		from tb_student	
+		limit #{pageSize} offset #{offset}
+	</select>
+	
+</mapper>
